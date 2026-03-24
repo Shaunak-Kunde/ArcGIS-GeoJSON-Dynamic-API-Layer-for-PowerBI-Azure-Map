@@ -1,0 +1,2 @@
+# ArcGIS-GeoJSON-Dynamic-API-Layer-for-PowerBI-Azure-Map
+This is a repo created to store a combined.geojson file. First, in ArcGIS Online, I created a web map with multiple layers. Then in metadata, I got the resource URL. Then I used REST Query for Each URL to load and save a Json file for each map layer. Then I used a Python Script to merge all the json files into a single GeoJSON file, saved here. 
