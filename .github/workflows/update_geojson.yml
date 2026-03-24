@@ -1,0 +1,49 @@
+name: Update GeoJSON
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # runs every hour
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Fetch ArcGIS layers
+        run: |
+          curl "https://services3.arcgis.com/Fqk0gVrfcnumlR5m/arcgis/rest/services/חלקות_חקלאיות_בישובים_מתוכננים/FeatureServer/0/query?where=1=1&outFields=*&f=geojson" -o layer1.json
+          curl "https://services8.arcgis.com/x3OYmfTujNHGdoex/arcgis/rest/services/Palestine_border/FeatureServer/4/query?where=1=1&outFields=*&f=geojson" -o layer2.json
+
+      - name: Merge layers
+        run: |
+          python - <<EOF
+          import json
+
+          files = ["layer1.json","layer2.json"]
+          all_features=[]
+
+          for f in files:
+              with open(f) as file:
+                  data=json.load(file)
+                  all_features.extend(data["features"])
+
+          output={
+              "type":"FeatureCollection",
+              "features":all_features
+          }
+
+          with open("combined_layers_3.geojson","w") as f:
+              json.dump(output,f)
+          EOF
+
+      - name: Commit updated GeoJSON
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add combined_layers_3.geojson
+          git commit -m "Auto update GeoJSON" || echo "No changes"
+          git push
