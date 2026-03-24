@@ -13,31 +13,40 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
       - name: Fetch ArcGIS layers
         run: |
-          curl "https://services3.arcgis.com/Fqk0gVrfcnumlR5m/arcgis/rest/services/חלקות_חקלאיות_בישובים_מתוכננים/FeatureServer/0/query?where=1=1&outFields=*&f=geojson" -o layer1.json
-          curl "https://services8.arcgis.com/x3OYmfTujNHGdoex/arcgis/rest/services/Palestine_border/FeatureServer/4/query?where=1=1&outFields=*&f=geojson" -o layer2.json
+          curl -L "https://services3.arcgis.com/Fqk0gVrfcnumlR5m/arcgis/rest/services/חלקות_חקלאיות_בישובים_מתוכננים/FeatureServer/0/query?where=1=1&outFields=*&f=geojson" -o layer1.json
+          curl -L "https://services8.arcgis.com/x3OYmfTujNHGdoex/arcgis/rest/services/Palestine_border/FeatureServer/4/query?where=1=1&outFields=*&f=geojson" -o layer2.json
 
       - name: Merge layers
         run: |
-          python - <<EOF
+          python <<EOF
           import json
 
           files = ["layer1.json","layer2.json"]
           all_features=[]
 
           for f in files:
-              with open(f) as file:
+              with open(f,encoding="utf-8") as file:
                   data=json.load(file)
-                  all_features.extend(data["features"])
+
+                  if "features" in data:
+                      all_features.extend(data["features"])
 
           output={
               "type":"FeatureCollection",
               "features":all_features
           }
 
-          with open("combined_layers_3.geojson","w") as f:
+          with open("combined_layers_3.geojson","w",encoding="utf-8") as f:
               json.dump(output,f)
+
+          print("Merged features:",len(all_features))
           EOF
 
       - name: Commit updated GeoJSON
