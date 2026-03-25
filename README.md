@@ -2,7 +2,7 @@
 This is a repo created to store a combined.geojson file. First, in ArcGIS Online, I created a web map with multiple layers. Then in metadata, I got the resource URL. Then I used REST Query for Each URL to load and save a Json file for each map layer. Then I used a Python Script to merge all the json files into a single GeoJSON file, saved here. 
 
 
-# Step-by-Step Implementation of ArcGIS Layers into PowerBI Azure Map
+## Step-by-Step Implementation of ArcGIS Layers into PowerBI Azure Map
 I implemented an automated pipeline that merges ArcGIS layers externally and provides a single GeoJSON URL for Az-ure Maps.
 1.	Opened ArcGIS Online and explored public Web Maps containing geographic layers.
 2.	Identified useful layers such as Palestine border and Agricultural parcels. 
