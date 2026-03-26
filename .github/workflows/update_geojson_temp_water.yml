@@ -1,4 +1,4 @@
-name: Update GeoJSON
+name: Update GeoJSON Temp Water
 
 on:
   schedule:
