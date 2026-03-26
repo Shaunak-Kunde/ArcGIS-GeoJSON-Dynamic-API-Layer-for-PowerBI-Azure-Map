@@ -1,0 +1,68 @@
+name: Update GeoJSON
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Fetch ArcGIS layers
+        run: |
+          curl -L "https://services.arcgis.com/Lq3V5RFuTBC9I7kv/arcgis/rest/services/Monthly_Global_Temperature_1981_2010/FeatureServer/8/query?where=1=1&outFields=*&f=geojson" -o layer4.json
+          curl -L "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/aqueduct_water_risk/FeatureServer/2/query?where=1=1&outFields=*&f=geojson" -o layer5.json
+
+      - name: Merge layers
+        run: |
+          python <<EOF
+          import json
+
+          files = ["layer4.json","layer5.json"]
+          all_features=[]
+
+          for f in files:
+              with open(f,encoding="utf-8") as file:
+                  data=json.load(file)
+                  if "features" in data:
+                      all_features.extend(data["features"])
+
+          output={
+              "type":"FeatureCollection",
+              "features":all_features
+          }
+
+          with open("combined_layers_6.geojson","w",encoding="utf-8") as f:
+              json.dump(output,f)
+
+          print("Merged features:",len(all_features))
+          EOF
+
+      - name: Commit updated GeoJSON
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add combined_layers_6.geojson
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto update GeoJSON"
+            git push
+          fi
